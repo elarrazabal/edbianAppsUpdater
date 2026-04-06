@@ -6,8 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write   # 🔥 ESTO ES LA CLAVE
-
+  contents: write
 
 jobs:
   build-and-release:
@@ -20,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y dpkg-dev fakeroot curl jq
+        sudo apt install -y build-essential devscripts debhelper dpkg-dev fakeroot
 
     - name: Determine version
       run: |
@@ -33,14 +32,22 @@ jobs:
         sed -i "s/^Version:.*/Version: $VERSION/" debian/control
         cat debian/control
 
-    - name: Install build deps
-      run: |
-        sudo apt update
-        sudo apt install -y build-essential devscripts debhelper
-
     - name: Build .deb
       run: |
         dpkg-buildpackage -us -uc -b
+
+    - name: Locate .deb file
+      run: |
+        DEB_FILE=$(ls ../*.deb | head -n 1)
+        echo "DEB_FILE=$DEB_FILE" >> $GITHUB_ENV
+        echo "Found package: $DEB_FILE"
+
+    - name: Rename .deb (opcional)
+      run: |
+        cp "$DEB_FILE" "edbian-apps-updater-${VERSION}.deb"
+
+    - name: Debug files
+      run: ls -lah
 
     - name: Create Release & Upload Asset
       uses: softprops/action-gh-release@v1
@@ -55,4 +62,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: edbian-apps-updater-deb
-        path: edbian-apps-updater-$VERSION.deb
+        path: edbian-apps-updater-${{ env.VERSION }}.deb
