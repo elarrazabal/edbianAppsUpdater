@@ -37,7 +37,7 @@ jobs:
       run: |
         mkdir pkg
         rsync -a --exclude='.git' --exclude='.github' --exclude='intrucciones' --exclude='README*' --exclude='LICENSE*'./ pkg/
-        dpkg-buildpackage -us -uc pkg edbian-apps-updater.deb
+        dpkg-buildpackage -us -uc edbian-apps-updater.deb
         mv edbian-apps-updater.deb edbian-apps-updater-$VERSION.deb
 
     - name: Create Release & Upload Asset
