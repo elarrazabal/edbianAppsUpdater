@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Edbian-updater",
+        "repo": "elarrazabal/edbian-updater",
+        "asset_pattern": "edbian-updater-",
+        "install_path": "/usr/local/bin/edbian-updater"
+    },
+    {
+        "name": "edbian-installer-v2",
+        "repo": "elarrazabal/edbian-installer-v2",
+        "asset_pattern": "edbian-installer-v2-",
+        "install_path": "/usr/local/bin/edbian-installer-v2"
+    },
+    {
+        "name": "edbian-branding",
+        "repo": "elarrazabal/edbian-branding",
+        "asset_pattern": "edbian-branding-",
+        "install_path": "/usr/local/bin/edbian-branding"
+    }
+]

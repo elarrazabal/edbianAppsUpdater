@@ -1,0 +1,8 @@
+# debian/install
+debian/edbian-apps-updater.sh usr/bin/
+src/edbian_apps_updater.py usr/share/edbian-apps-updater/
+packages.json usr/share/edbian-apps-updater/
+install.packages.sh usr/lib/edbian-apps-updater/
+edbian-apps-updater.png usr/share/icons/hicolor/128x128/apps/
+debian/edbian-apps-updater.desktop usr/share/applications/
+

@@ -1,0 +1,11 @@
+Package: edbian-apps-updater
+Version: 0.1.0-1
+Architecture: all
+Maintainer: Eduardo de Larrazabaloo <elarrzabal@gmail.com>
+Installed-Size: 74
+Depends: python3, python3-gi, python3-requests
+Section: utils
+Priority: optional
+Description: Actualizador GTK3 para paquetes GitHub
+ Aplicación en Python3 con GTK3 que permite actualizar paquetes
+ automáticamente desde GitHub.

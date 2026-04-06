@@ -1,0 +1,7 @@
+fe1584b0ff1a663f54363626d34f0ff3  usr/bin/edbian-apps-updater.sh
+889992b013f843ec574c54d4a4211648  usr/share/applications/edbian-apps-updater.desktop
+5295491ad5224f6b22f1c94b8eb91291  usr/share/doc/edbian-apps-updater/changelog.Debian.gz
+55112d2e65a7924d4ce7a0963c509625  usr/share/doc/edbian-apps-updater/copyright
+e19831a43fb48dc0d30f0734d96b30bf  usr/share/edbian-apps-updater/edbian_apps_updater.py
+b6a31b2f3ece7b735f0f8b63817bb637  usr/share/edbian-apps-updater/packages.json
+bea021d1726695e34e15e9f169f53f52  usr/share/icons/hicolor/128x128/apps/edbian-apps-updater.png

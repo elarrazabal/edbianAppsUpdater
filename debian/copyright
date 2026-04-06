@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: edbian-apps-updater
+Source: https://github.com/elarrazabal/edbian-apps-updater
+
+Files: *
+Copyright: 2026 Eduardo de Larrazabal <elarrazabalo@gmail.com>
+License: MIT
+ Permission is hereby granted...

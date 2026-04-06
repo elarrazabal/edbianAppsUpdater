@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Edbian Apps Updater
+Comment=Actualizador de paquetes desde GitHub
+Exec=edbian-apps-updater
+Icon=edbian-apps-updater
+Terminal=false
+Type=Application
+Categories=Utility;

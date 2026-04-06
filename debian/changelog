@@ -1,0 +1,5 @@
+edbian-apps-updater (0.1.0-1) unstable; urgency=medium
+
+  * Primera versión con GUI GTK3 y actualizador de paquetes desde GitHub
+
+ -- Eduardo de Larrazabaloo <elarrzabal@gmail.com>  Sat, 20 Mar 2026 12:00:00 +0000

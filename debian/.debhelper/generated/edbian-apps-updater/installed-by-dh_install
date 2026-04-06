@@ -1,0 +1,5 @@
+./debian/edbian-apps-updater.sh
+./src/edbian_apps_updater.py
+./packages.json
+./edbian-apps-updater.png
+./debian/edbian-apps-updater.desktop
