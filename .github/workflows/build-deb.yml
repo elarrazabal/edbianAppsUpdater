@@ -33,12 +33,14 @@ jobs:
         sed -i "s/^Version:.*/Version: $VERSION/" debian/control
         cat debian/control
 
+    - name: Install build deps
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential devscripts debhelper
+
     - name: Build .deb
       run: |
-        mkdir pkg
-        rsync -a --exclude='.git' --exclude='.github' --exclude='intrucciones' --exclude='README*' --exclude='LICENSE*'./ pkg/
-        dpkg-buildpackage -us -uc edbian-apps-updater.deb
-        mv edbian-apps-updater.deb edbian-apps-updater-$VERSION.deb
+        dpkg-buildpackage -us -uc -b
 
     - name: Create Release & Upload Asset
       uses: softprops/action-gh-release@v1
