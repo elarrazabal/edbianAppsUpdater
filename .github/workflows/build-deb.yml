@@ -1,0 +1,56 @@
+name: Build & Release Edbian Apps Updater .deb
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # 🔥 ESTO ES LA CLAVE
+
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y dpkg-dev fakeroot curl jq
+
+    - name: Determine version
+      run: |
+        VERSION=$(echo ${GITHUB_REF_NAME} | sed 's/^v//')
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Building version: $VERSION"
+
+    - name: Update debian/control version
+      run: |
+        sed -i "s/^Version:.*/Version: $VERSION/" debian/control
+        cat debian/control
+
+    - name: Build .deb
+      run: |
+        mkdir pkg
+        rsync -a --exclude='.git' --exclude='.github' --exclude='intrucciones' --exclude='README*' --exclude='LICENSE*'./ pkg/
+        dpkg-buildpackage -us -uc pkg edbian-apps-updater.deb
+        mv edbian-apps-updater.deb edbian-apps-updater-$VERSION.deb
+
+    - name: Create Release & Upload Asset
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ env.VERSION }}
+        name: v${{ env.VERSION }}
+        files: edbian-apps-updater-${{ env.VERSION }}.deb
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload artifact (Actions)
+      uses: actions/upload-artifact@v4
+      with:
+        name: edbian-apps-updater-deb
+        path: edbian-apps-updater-$VERSION.deb
