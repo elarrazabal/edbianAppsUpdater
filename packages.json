@@ -12,9 +12,9 @@
         "install_path": "/usr/local/bin/edbian-installer-v2"
     },
     {
-        "name": "edbian-branding",
-        "repo": "elarrazabal/edbian-branding",
-        "asset_pattern": "edbian-branding-",
-        "install_path": "/usr/local/bin/edbian-branding"
+        "name": "edbian-apps-updater",
+        "repo": "elarrazabal/edbianAppsUpdater",
+        "asset_pattern": "edbian-apps-updater-",
+        "install_path": "/usr/local/bin/edbian-apps-updater"
     }
 ]

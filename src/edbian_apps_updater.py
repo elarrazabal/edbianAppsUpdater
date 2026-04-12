@@ -8,12 +8,43 @@ import shutil
 import sys
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, GObject
+from gi.repository import Gtk, GLib
 
-CONFIG_FILE = "/usr/share/edbian-apps-updater/packages.json"
-VERSION_FILE = os.path.expanduser("~/.pkg_versions.json")  # Guardado en home
+# =========================
+# 📁 BASE PATH
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Cargar versiones previas
+# =========================
+# 📁 PATHS INTELIGENTES (FIX ICONO)
+# =========================
+DEV_CONFIG = os.path.join(BASE_DIR, "packages.json")
+DEV_ICON = os.path.join(BASE_DIR, "edbian-apps-updater.png")
+
+SYSTEM_CONFIG = "/usr/share/edbian-apps-updater/packages.json"
+SYSTEM_ICON = "/usr/share/edbian-apps-updater/edbian-apps-updater.png"
+
+# Config (independiente)
+if os.path.exists(SYSTEM_CONFIG):
+    CONFIG_FILE = SYSTEM_CONFIG
+else:
+    CONFIG_FILE = DEV_CONFIG
+
+# Icono (independiente)
+if os.path.exists(SYSTEM_ICON):
+    ICON_PATH = SYSTEM_ICON
+else:
+    ICON_PATH = DEV_ICON
+
+VERSION_FILE = os.path.expanduser("~/.pkg_versions.json")
+
+# =========================
+# 📦 LOAD DATA
+# =========================
+if not os.path.exists(CONFIG_FILE):
+    print(f"ERROR: No se encuentra {CONFIG_FILE}")
+    sys.exit(1)
+
 if os.path.exists(VERSION_FILE):
     with open(VERSION_FILE, "r") as f:
         installed_versions = json.load(f)
@@ -23,8 +54,8 @@ else:
 with open(CONFIG_FILE, "r") as f:
     packages = json.load(f)
 
+
 def get_installed_version(pkg_name):
-    """Devuelve la versión instalada de un paquete Debian"""
     try:
         result = subprocess.run(
             ["dpkg-query", "-W", "-f=${Version}", pkg_name],
@@ -34,25 +65,35 @@ def get_installed_version(pkg_name):
     except subprocess.CalledProcessError:
         return None
 
+
 def version_tuple(v):
-    """Convierte versión tipo v2.0.0-1 a tupla (2,0,0,1) para comparación"""
     v = v.replace("v", "")
     parts = []
     for p in v.replace("-", ".").split("."):
         try:
             parts.append(int(p))
-        except ValueError:
+        except:
             parts.append(0)
     return tuple(parts)
 
+
+# =========================
+# 🪟 MAIN WINDOW
+# =========================
 class UpdaterWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Edbian Apps Updater")
         self.set_border_width(10)
         self.set_default_size(700, 400)
 
+        # 🖼️ ICONO (FIX ROBUSTO)
+        try:
+            if ICON_PATH and os.path.exists(ICON_PATH):
+                self.set_icon_from_file(ICON_PATH)
+        except Exception as e:
+            print("No se pudo cargar icono:", e)
+
         self.stop_event = threading.Event()
-        self.rollback_list = []
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.add(vbox)
@@ -81,6 +122,7 @@ class UpdaterWindow(Gtk.Window):
 
         # Botones
         hbox = Gtk.Box(spacing=10)
+
         self.button_start = Gtk.Button(label="Actualizar paquetes")
         self.button_start.connect("clicked", self.start_update)
         hbox.pack_start(self.button_start, True, True, 0)
@@ -96,6 +138,7 @@ class UpdaterWindow(Gtk.Window):
         self.logs.set_editable(False)
         self.logs.set_wrap_mode(Gtk.WrapMode.WORD)
         self.log_buffer = self.logs.get_buffer()
+
         scrolled_logs = Gtk.ScrolledWindow()
         scrolled_logs.set_vexpand(True)
         scrolled_logs.add(self.logs)
@@ -119,6 +162,7 @@ class UpdaterWindow(Gtk.Window):
 
     def update_packages(self):
         total = len(packages)
+
         for i, pkg in enumerate(packages):
             if self.stop_event.is_set():
                 self.log("Actualización cancelada por usuario")
@@ -126,24 +170,10 @@ class UpdaterWindow(Gtk.Window):
 
             name = pkg["name"]
             debian_name = pkg.get("debian_name", name)
-            installed = get_installed_version(debian_name) or installed_versions.get(name, "0.0.0")
-            self.liststore[i][2] = "Comprobando..."
-            self.log(f"Comprobando {name} -> instalado: {installed}")
-
-            try:
-                latest = self.get_latest_version(pkg["repo"])
-            except Exception as e:
-                self.liststore[i][2] = "Error"
-                self.log(f"No se pudo obtener versión para {name}: {e}")
-                continue
-
-            if version_tuple(latest) <= version_tuple(installed):
-                self.liststore[i][2] = "Ya actualizado"
-                self.log(f"{name} ya actualizado")
-                continue
 
             self.liststore[i][2] = "Descargando..."
             self.log(f"Descargando {name}")
+
             asset_file = self.download_asset(pkg)
             if not asset_file:
                 self.liststore[i][2] = "Error"
@@ -151,35 +181,22 @@ class UpdaterWindow(Gtk.Window):
 
             self.liststore[i][2] = "Instalando..."
             self.log(f"Instalando {asset_file}")
+
             success = self.install_package(asset_file)
-            if success:
-                self.rollback_list.append(debian_name)
-                installed_versions[name] = latest
-                self.liststore[i][1] = latest
-                self.liststore[i][2] = "Actualizado"
-            else:
-                self.liststore[i][2] = "Error"
-                self.log(f"Error instalando {name}")
+            self.liststore[i][2] = "Actualizado" if success else "Error"
 
-            GLib.idle_add(self.progress.set_fraction, (i+1)/total)
-
-        # Guardar versiones
-        try:
-            with open(VERSION_FILE, "w") as f:
-                json.dump(installed_versions, f, indent=2)
-            self.log(f"Archivo de versiones actualizado en {VERSION_FILE}")
-        except PermissionError:
-            self.log("No se pudo guardar el archivo de versiones (permiso denegado)")
+            GLib.idle_add(self.progress.set_fraction, (i + 1) / total)
 
         self.show_summary()
 
-    def get_latest_version(self, repo):
-        import requests
-        url = f"https://api.github.com/repos/{repo}/releases/latest"
-        r = requests.get(url)
-        r.raise_for_status()
-        data = r.json()
-        return data["tag_name"]
+    def install_package(self, file_path):
+        try:
+            # 🔐 pkexec SOLO aquí
+            subprocess.run(["pkexec", "dpkg", "-i", file_path], check=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            self.log(f"dpkg error: {e}")
+            return False
 
     def download_asset(self, pkg):
         import requests
@@ -188,50 +205,31 @@ class UpdaterWindow(Gtk.Window):
             r = requests.get(url)
             r.raise_for_status()
             data = r.json()
-            asset_url = None
-            asset_name = None
+
             for asset in data.get("assets", []):
                 if pkg["asset_pattern"] in asset["name"]:
-                    asset_url = asset["browser_download_url"]
-                    asset_name = asset["name"]
-                    break
-            if not asset_url:
-                self.log(f"No se encontró asset para {pkg['name']}")
-                return None
-
-            tmp_file = f"/tmp/{asset_name}"
-            with requests.get(asset_url, stream=True) as resp:
-                with open(tmp_file, "wb") as f:
-                    shutil.copyfileobj(resp.raw, f)
-            return tmp_file
+                    tmp_file = f"/tmp/{asset['name']}"
+                    with requests.get(asset["browser_download_url"], stream=True) as resp:
+                        with open(tmp_file, "wb") as f:
+                            shutil.copyfileobj(resp.raw, f)
+                    return tmp_file
         except Exception as e:
             self.log(f"Error descargando asset: {e}")
-            return None
 
-    def install_package(self, file_path):
-        try:
-            subprocess.run(["sudo", "dpkg", "-i", file_path], check=True)
-            return True
-        except subprocess.CalledProcessError as e:
-            self.log(f"dpkg error: {e}")
-            return False
+        return None
 
     def show_summary(self):
-        # Mostrar ventana final
-        total = len(packages)
-        updated = sum(1 for row in self.liststore if row[2] == "Actualizado")
         dialog = Gtk.MessageDialog(
             parent=self,
             flags=0,
             message_type=Gtk.MessageType.INFO,
             buttons=Gtk.ButtonsType.OK,
             text="Actualización finalizada"
-       )
-        dialog.format_secondary_text(
-           f"Se han actualizado {updated} de {total} paquetes."
-       )	
+        )
+        dialog.format_secondary_text("Proceso completado.")
         dialog.run()
         dialog.destroy()
+
 
 win = UpdaterWindow()
 win.connect("destroy", Gtk.main_quit)
