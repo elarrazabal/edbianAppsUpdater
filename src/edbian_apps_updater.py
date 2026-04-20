@@ -22,7 +22,7 @@ DEV_CONFIG = os.path.join(BASE_DIR, "packages.json")
 DEV_ICON = os.path.join(BASE_DIR, "edbian-apps-updater.png")
 
 SYSTEM_CONFIG = "/usr/share/edbian-apps-updater/packages.json"
-SYSTEM_ICON = "/usr/share/edbian-apps-updater/edbian-apps-updater.png"
+SYSTEM_ICON = "usr/share/icons/hicolor/128x128/apps/edbian-apps-updater.png"
 
 # Config (independiente)
 if os.path.exists(SYSTEM_CONFIG):

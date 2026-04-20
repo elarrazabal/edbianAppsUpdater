@@ -1,20 +1,20 @@
 [
     {
-        "name": "Edbian-updater",
+        "name": "edbian-updater",
         "repo": "elarrazabal/edbian-updater",
         "asset_pattern": "edbian-updater-",
-        "install_path": "/usr/local/bin/edbian-updater"
+        "install_path": "/usr/bin/edbian-updater"
     },
     {
-        "name": "edbian-installer-v2",
+        "name": "edbian-installer",
         "repo": "elarrazabal/edbian-installer-v2",
         "asset_pattern": "edbian-installer-v2-",
-        "install_path": "/usr/local/bin/edbian-installer-v2"
+        "install_path": "/usr/local/bin/edbian-installer"
     },
     {
         "name": "edbian-apps-updater",
         "repo": "elarrazabal/edbianAppsUpdater",
         "asset_pattern": "edbian-apps-updater-",
-        "install_path": "/usr/local/bin/edbian-apps-updater"
+        "install_path": "/usr/bin/edbian-apps-updater"
     }
 ]
