@@ -7,6 +7,9 @@ import gi
 import shutil
 import sys
 
+import shutil
+print("dpkg-query path:", shutil.which("dpkg-query"))
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
 
@@ -22,7 +25,7 @@ DEV_CONFIG = os.path.join(BASE_DIR, "packages.json")
 DEV_ICON = os.path.join(BASE_DIR, "edbian-apps-updater.png")
 
 SYSTEM_CONFIG = "/usr/share/edbian-apps-updater/packages.json"
-SYSTEM_ICON = "usr/share/icons/hicolor/128x128/apps/edbian-apps-updater.png"
+SYSTEM_ICON = "/usr/share/icons/hicolor/128x128/apps/edbian-apps-updater.png"
 
 # Config (independiente)
 if os.path.exists(SYSTEM_CONFIG):
@@ -58,10 +61,18 @@ with open(CONFIG_FILE, "r") as f:
 def get_installed_version(pkg_name):
     try:
         result = subprocess.run(
-            ["dpkg-query", "-W", "-f=${Version}", pkg_name],
+            ["dpkg-query", "-W", "-f=${Status} ${Version}", pkg_name],
             capture_output=True, text=True, check=True
         )
-        return result.stdout.strip()
+
+        output = result.stdout.strip()
+
+        # Solo si está instalado
+        if output.startswith("install ok installed"):
+            return output.split()[-1]
+
+        return None
+
     except subprocess.CalledProcessError:
         return None
 
@@ -102,7 +113,10 @@ class UpdaterWindow(Gtk.Window):
         self.liststore = Gtk.ListStore(str, str, str)
         for pkg in packages:
             debian_name = pkg.get("debian_name", pkg["name"])
-            current = get_installed_version(debian_name) or installed_versions.get(pkg["name"], "0.0.0")
+            current = get_installed_version(debian_name)
+
+            if current is None:
+                current = "No instalado"
             self.liststore.append([pkg["name"], current, "Pendiente"])
 
         treeview = Gtk.TreeView(model=self.liststore)
