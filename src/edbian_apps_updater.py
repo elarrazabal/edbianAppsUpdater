@@ -269,8 +269,9 @@ class UpdaterWindow(Gtk.Window):
             # VERSIÓN INSTALADA REAL
             # =========================
             installed_version = get_installed_version(debian_name)
+            is_new_install = installed_version is None
 
-            if installed_version is None:
+            if is_new_install:
                 installed_version = "0"
 
             # =========================
@@ -286,14 +287,20 @@ class UpdaterWindow(Gtk.Window):
 
                 continue
 
-            self.log(
+            if is_new_install:
+                self.log(
+                    f"{name} no está instalado. Se instalará la versión {latest_version}"
+                )
+            else:
+                self.log(
                 f"{name} -> instalada: {installed_version} | github: {latest_version}"
             )
 
             # =========================
             # NO REINSTALAR SI ES IGUAL
             # =========================
-            if version_tuple(installed_version) >= version_tuple(latest_version):
+            if not is_new_install and \
+                version_tuple(installed_version) >= version_tuple(latest_version):
 
                 self.liststore[i][2] = "Ya actualizado"
 
@@ -342,7 +349,10 @@ class UpdaterWindow(Gtk.Window):
 
                 self.liststore[i][2] = "Instalado"
 
-                self.log(f"{name} actualizado correctamente")
+                if is_new_install:
+                    self.log(f"{name} instalado correctamente")
+                else:
+                    self.log(f"{name} actualizado correctamente")
 
             else:
 
@@ -369,11 +379,16 @@ class UpdaterWindow(Gtk.Window):
                 check=True
             )
 
+            subprocess.run(
+                ["pkexec", "apt-get", "-f", "install", "-y"],
+                check=True
+            )
+
             return True
 
         except subprocess.CalledProcessError as e:
 
-            self.log(f"dpkg error: {e}")
+            self.log(f"Error instalación: {e}")
 
             return False
 
